@@ -5,10 +5,11 @@
   "main": "handler.js",
   "scripts": {
     "deploy": "serverless deploy --aws-profile serverless --stage dev --region us-east-1",
-    "testZipsL": "serverless invoke local -f getZip -l --path path.json",
-    "testZipsC": "serverless invoke -f getZip -l --path path.json"
+    "testzips": "serverless invoke -f getZip -l --path ./test/test-zips.json",
+    "testreps": "serverless invoke -f getRepById -l --path ./test/test-reps.json",
+    "testsens": "serverless invoke -f getSenById -l --path ./test/test-sens.json"
   },
-  "author": "",
+  "author": "bpb27",
   "license": "ISC",
   "devDependencies": {
     "dynamodb-admin": "^1.12.0"

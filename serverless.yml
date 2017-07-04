@@ -16,6 +16,10 @@ provider:
         - dynamodb:Scan
         - dynamodb:GetItem
       Resource: "arn:aws:dynamodb:us-east-1:559792203405:table/*"
+  environment:
+    TABLE_ZIPS: zips
+    TABLE_REPS: reps
+    TABLE_SENS: sens
 
 functions:
   hello:
@@ -32,5 +36,17 @@ functions:
           path: zips/{zipcode}
           method: GET
           cors: true
-    environment:
-      DYNAMODB_TABLE: zips
+  getRepById:
+    handler: handler.getRepById
+    events:
+      - http:
+          path: reps/district/{id}
+          method: GET
+          cors: true
+  getSenById:
+    handler: handler.getSenById
+    events:
+      - http:
+          path: sens/district/{id}
+          method: GET
+          cors: true
