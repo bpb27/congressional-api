@@ -1,0 +1,20 @@
+{
+  "name": "serverless-api",
+  "version": "1.0.0",
+  "description": "`serverless deploy --aws-profile serverless`",
+  "main": "handler.js",
+  "scripts": {
+    "deploy": "serverless deploy --aws-profile serverless --stage dev --region us-east-1",
+    "testZipsL": "serverless invoke local -f getZip -l --path path.json",
+    "testZipsC": "serverless invoke -f getZip -l --path path.json"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "dynamodb-admin": "^1.12.0"
+  },
+  "dependencies": {
+    "uuid": "^2.0.3",
+    "aws-sdk": "*"
+  }
+}
