@@ -22,31 +22,24 @@ provider:
     TABLE_SENS: sens
 
 functions:
-  hello:
-    handler: handler.hello
-    events:
-      - http:
-          path: hello
-          method: GET
-          cors: true
-  getZip:
-    handler: handler.getZip
+  get_district_by_zip:
+    handler: handler.get_district_by_zip
     events:
       - http:
           path: zips/{zipcode}
           method: GET
           cors: true
-  getRepById:
-    handler: handler.getRepById
+  get_rep_by_district:
+    handler: handler.get_rep_by_district
     events:
       - http:
-          path: reps/district/{id}
+          path: reps/district/{district}
           method: GET
           cors: true
-  getSenById:
-    handler: handler.getSenById
+  get_sen_by_state:
+    handler: handler.get_sen_by_state
     events:
       - http:
-          path: sens/district/{id}
+          path: sens/state/{state}
           method: GET
           cors: true

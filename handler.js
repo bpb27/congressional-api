@@ -1,80 +1,69 @@
 'use strict';
 
 const AWS = require('aws-sdk');
-const dynamoDb = new AWS.DynamoDB.DocumentClient();
+const dynamo = new AWS.DynamoDB.DocumentClient();
+const tableZips = process.env.TABLE_ZIPS;
+const tableReps = process.env.TABLE_REPS;
+const tableSens = process.env.TABLE_SENS;
 
-/*
-    Route:    /zips/:zipcode
-    Example:  /zips/91011
-*/
 
-function getZip (event, context, callback) {
+// ROUTE: /zips/:zipcode, EXAMPLE: /zips/91011
+function get_district_by_zip (event, context, callback) {
   const params = {
-    TableName: process.env.TABLE_ZIPS,
+    TableName: tableZips,
     Key: {
       zipcode: parseInt(event.pathParameters.zipcode)
     }
   };
 
-  dynamoDb.get(params, (error, result) => {
+  dynamo.get(params, (error, result) => {
     if (error)
-      return _errorHandler(event.pathParameters.zipcode, params.TableName, callback);
-    else
-      return _successHandler(result.Item, callback, _zipcodeToString);
+      return callback(new Error('failed to locate item'));
+    return standard_success_handler(result.Item, callback, zipcode_to_string);
   });
 }
 
-/*
-    Route:    /reps/:id
-    Example:  /reps/CA-27
-*/
-
-function getRepById (event, context, callback) {
+// ROUTE: /reps/district/:district, EXAMPLE: /reps/CA-27
+function get_rep_by_district (event, context, callback) {
   const params = {
-    TableName: process.env.TABLE_REPS,
+    TableName: tableReps,
     Key: {
-      id: event.pathParameters.id
+      id: event.pathParameters.district
     }
   };
 
-  dynamoDb.get(params, (error, result) => {
+  dynamo.get(params, (error, result) => {
     if (error)
-      return _errorHandler(event.pathParameters.id, params.TableName, callback);
-    else
-      return _successHandler(result.Item, callback);
+      return callback(new Error('failed to locate item'));
+    return standard_success_handler(result.Item, callback);
   });
 }
-/*
-    Route:    /sens/:id
-    Example:  /sens/CA-1
-*/
 
-function getSenById (event, context, callback) {
+// ROUTE: /sens/state/:state, EXAMPLE: /sens/state/CA
+function get_sen_by_state (event, context, callback) {
   const params = {
-    TableName: process.env.TABLE_SENS,
-    Key: {
-      id: event.pathParameters.id
+    RequestItems: {
+      [tableSens]: {
+        Keys: [
+          { id: event.pathParameters.state + '-1' },
+          { id: event.pathParameters.state + '-2' }
+        ]
+      }
     }
   };
 
-  dynamoDb.get(params, (error, result) => {
+  dynamo.batchGet(params, (error, result) => {
     if (error)
-      return _errorHandler(event.pathParameters.id, params.TableName, callback);
-    else
-      return _successHandler(result.Item, callback);
+      return callback(new Error('failed to locate item'));
+    return standard_success_handler(result.Responses.sens, callback);
   });
 }
 
 
 // private functions
 
-function _errorHandler (param, table, callback) {
-  let message = 'Failed to fetch item "' + param + '" from ' + table;
-  callback(new Error(message));
-}
-
-function _successHandler (item, callback, jsonModifier) {
-  let data = jsonModifier ? jsonModifier(item) : item;
+function standard_success_handler (item, callback, json_modifier) {
+  let data = json_modifier ? json_modifier(item) : item;
   const response = {
     statusCode: 200,
     headers: {
@@ -86,14 +75,17 @@ function _successHandler (item, callback, jsonModifier) {
   callback(null, response);
 }
 
-function _zipcodeToString(item) {
+function zipcode_to_string (item) {
   item.zipcode = item.zipcode.toString();
+  if (item.zipcode.length == 3) {
+    item.zipcode = '00' + item.zipcode;
+  }
   if (item.zipcode.length == 4) {
     item.zipcode = '0' + item.zipcode;
   }
   return item;
 }
 
-module.exports.getZip = getZip
-module.exports.getRepById = getRepById
-module.exports.getSenById = getSenById
+module.exports.get_district_by_zip = get_district_by_zip;
+module.exports.get_rep_by_district = get_rep_by_district;
+module.exports.get_sen_by_state = get_sen_by_state;
