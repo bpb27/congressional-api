@@ -6,6 +6,7 @@
   "scripts": {
     "deploy": "serverless deploy --aws-profile serverless --stage dev --region us-east-1",
     "testzips": "serverless invoke -f get_district_by_zip -l --path ./test/test-zips.json",
+    "testrepzip": "serverless invoke -f get_rep_by_zip -l --path ./test/test-zips.json",
     "testreps": "serverless invoke -f get_rep_by_district -l --path ./test/test-reps.json",
     "testsens": "serverless invoke -f get_sen_by_state -l --path ./test/test-sens.json"
   },

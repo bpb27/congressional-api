@@ -18,8 +18,39 @@ function get_district_by_zip (event, context, callback) {
 
   dynamo.get(params, (error, result) => {
     if (error)
-      return callback(new Error('failed to locate item'));
+      return standard_error_handler(error, event, params, callback);
     return standard_success_handler(result.Item, callback, zipcode_to_string);
+  });
+}
+
+// ROUTE: /reps/zip/:zipcode, EXAMPLE: /reps/zip/91011
+function get_rep_by_zip (event, context, callback) {
+  const zipParams = {
+    TableName: tableZips,
+    Key: {
+      zipcode: parseInt(event.pathParameters.zipcode)
+    }
+  };
+
+  dynamo.get(zipParams, (zipError, zipResult) => {
+    if (zipError)
+      return standard_error_handler(error, event, zipParams, callback);
+
+    const districts = zipResult.Item.districts.map((num) => zipResult.Item.state + '-' + num);
+    const repParams = {
+      RequestItems: {
+        [tableReps]: {
+          Keys: districts.map((district) => ({ id: district }))
+        }
+      }
+    };
+
+    dynamo.batchGet(repParams, (repError, repResult) => {
+      if (repError)
+        return standard_error_handler(repError, event, repParams, callback);
+      return standard_success_handler(repResult.Responses.reps, callback);
+    });
+
   });
 }
 
@@ -34,7 +65,7 @@ function get_rep_by_district (event, context, callback) {
 
   dynamo.get(params, (error, result) => {
     if (error)
-      return callback(new Error('failed to locate item'));
+      return standard_error_handler(error, event, params, callback);
     return standard_success_handler(result.Item, callback);
   });
 }
@@ -54,13 +85,19 @@ function get_sen_by_state (event, context, callback) {
 
   dynamo.batchGet(params, (error, result) => {
     if (error)
-      return callback(new Error('failed to locate item'));
+      return standard_error_handler(error, event, params, callback);
     return standard_success_handler(result.Responses.sens, callback);
   });
 }
 
 
 // private functions
+
+function standard_error_handler (error, event, params, callback) {
+  console.log('Run with: ', event.pathParameters, params);
+  console.log('Error reading from DB: ', error);
+  return callback(new Error('failed to locate item'));
+}
 
 function standard_success_handler (item, callback, json_modifier) {
   let data = json_modifier ? json_modifier(item) : item;
@@ -87,5 +124,6 @@ function zipcode_to_string (item) {
 }
 
 module.exports.get_district_by_zip = get_district_by_zip;
+module.exports.get_rep_by_zip = get_rep_by_zip;
 module.exports.get_rep_by_district = get_rep_by_district;
 module.exports.get_sen_by_state = get_sen_by_state;

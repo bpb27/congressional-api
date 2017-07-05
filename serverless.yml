@@ -1,4 +1,4 @@
-service: serverless-api
+service: congressional-api
 
 frameworkVersion: ">=1.1.0 <2.0.0"
 
@@ -15,6 +15,7 @@ provider:
         - dynamodb:Query
         - dynamodb:Scan
         - dynamodb:GetItem
+        - dynamodb:BatchGetItem
       Resource: "arn:aws:dynamodb:us-east-1:559792203405:table/*"
   environment:
     TABLE_ZIPS: zips
@@ -27,6 +28,13 @@ functions:
     events:
       - http:
           path: zips/{zipcode}
+          method: GET
+          cors: true
+  get_rep_by_zip:
+    handler: handler.get_rep_by_zip
+    events:
+      - http:
+          path: reps/zip/{zipcode}
           method: GET
           cors: true
   get_rep_by_district:
